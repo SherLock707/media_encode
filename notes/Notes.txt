@@ -1,0 +1,30 @@
+ 
+ffmpeg -i test.mkv -vf "scale=1280:720" -c:v libx265 -r 24000/1001 -crf 23 -preset slow -tune animation -x265-params limit-sao=1:deblock=1,1:bframes=8:ref=6:psy-rd=1.5:psy-rdoq=2:aq-mode=3 -pix_fmt yuv420p10le -c:a copy reddit_output.mkv
+
+ffmpeg -i test.mkv -vf "scale=1280:720" -c:v libx265 -r 24000/1001 -crf 22 -preset slow -tune animation -x265-params limit-sao=1:deblock=1,1:bframes=8:ref=6:psy-rd=1.5:psy-rdoq=2:aq-mode=3 -pix_fmt yuv420p10le -c:a copy reddit_output.mkv
+
+
+Use the 10-bit encoder (-pix_fmt yuv420p10le)
+
+Optimally, use the slow preset. (-preset slow)
+
+aq-mode=3! This sets dark scene aq bias, which is really helpful for anime, as this is where most of the artifacts and banding will be.
+
+Don't use tune animation. The appended options are : psy-rd=0.4:aq-strength=0.4:deblock=1,1:bframes=(preset+2). These are optimized for cartoon-style animation, anything more complex than slice of life is going to suffer, especially with newer BD releases utilizing dynamic grain to prevent banding. 
+
+For "Anime" anime, I recommend 
+psy-rd 1 to 2 (more complex/action packed/detailed anime = higher value needed, also increases bitrate), 
+aq-strength 0.6 to 1 (more complex/detailed = need higher value, don't go beyond 1 as you may introduce ringing artifacts. You will mostly use 0.8-1. Also raises bitrate.), 
+deblock -1:-1 to 1:1 (depends on source, leave on 0:0 if you don't know what to use) and 
+bframes 4 to 8 (I highly recommend 6, 8 if possible. Encode penalty is only ~5% going from 4 to 8). 
+Additionally, if your source has grain, psy-rdoq should be raised from the default 1 to 3-5 depending on source (note: only combine higher rdoq with crf<18 and no-sao, or you'll end up with grain "blocks" instead of grain "grain").
+
+Use limit-sao for crf 17-19. Use no-sao for crf<18 if there are fine grain present. Else leave on default.
+
+Use no-strong-intra-smoothing only for crf<16. This helps preserve fine details. High crf will result in blocking due to lack of smoothing on 32x32 blocks.
+
+
+ffmpeg -i test.mkv -vf "scale=1280:720" -c:v libx265 -r 24000/1001 -crf 23 -preset slow -x265-params limit-sao=1:deblock=1,1:bframes=8:ref=6:psy-rd=1.5:psy-rdoq=2:aq-mode=3 -pix_fmt yuv420p10le -c:a copy reddit_output.mkv
+
+
+ffmpeg -i test.mkv -vf "scale=1280:720" -c:v libx265 -r 24000/1001 -crf 23 -preset slow -x265-params "limit-sao=1:deblock=1,1:bframes=8:ref=6:psy-rd=1:aq-mode=3" -pix_fmt yuv420p10le -c:a copy reddit_output.mkv
